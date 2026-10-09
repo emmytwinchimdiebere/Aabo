@@ -304,7 +304,11 @@ class AaboAgent:
             if not is_positive_response(utterance):
                 candidate = self.location_resolver.resolve(utterance)
                 if not candidate.needs_detail:
-                    self._save_location(state, candidate)
+                    self._save_location(
+                        state,
+                        candidate,
+                        attempts=state.location_attempts + 1,
+                    )
                     return AgentReply(
                         CONFIRM_LOCATION[language].format(location=candidate.display_name)
                     )

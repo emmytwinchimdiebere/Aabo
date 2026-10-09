@@ -405,6 +405,31 @@ async def test_repeated_no_restarts_location_collection(client):
     assert "I heard" not in response.json()["text"]
 
 
+async def test_spoken_location_correction_is_saved_and_confirmed(client):
+    base = {
+        "event": "turn",
+        "agent_id": "agt-test",
+        "call_id": "call-location-correction",
+        "from_number": "+2348000000000",
+        "to_number": "+2342013502017",
+        "messages": [],
+    }
+    await post_signed(client, {**base, "transcription": "English"})
+    await post_signed(client, {**base, "transcription": "Balogun Market, Lagos"})
+
+    response = await post_signed(
+        client,
+        {**base, "transcription": "No. 19 Osumeyi Street, Awada"},
+    )
+
+    assert response.status_code == 200
+    assert "No. 19 Osumeyi Street, Awada" in response.json()["text"]
+    assert "Is that correct" in response.json()["text"]
+    response = await post_signed(client, {**base, "transcription": "yes"})
+    assert response.status_code == 200
+    assert "Location confirmed" in response.json()["text"]
+
+
 async def test_broad_location_prompts_for_a_landmark(client):
     base = {
         "event": "turn",
