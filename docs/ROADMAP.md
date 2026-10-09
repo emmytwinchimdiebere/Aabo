@@ -9,6 +9,7 @@ The immediate objective is a complete call-to-dispatcher path. Items are ordered
 - [x] Hash caller identifiers before persistence.
 - [x] Download provider audio with time, size, and content-type limits.
 - [x] Integrate N-ATLAS transcription through Hugging Face Inference.
+- [x] Route English, Yoruba, Hausa, and Igbo calls to their language-specific models.
 - [x] Add Whisper fallback and an explicit manual-transcription state.
 - [x] Persist transcript provenance and confidence.
 

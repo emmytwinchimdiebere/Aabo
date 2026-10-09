@@ -24,7 +24,10 @@ class Settings:
     recording_timeout_seconds: float
     hf_token: str | None
     hf_inference_base_url: str
-    natlas_asr_model: str
+    natlas_english_model: str
+    natlas_yoruba_model: str
+    natlas_hausa_model: str
+    natlas_igbo_model: str
     fallback_asr_model: str
     transcription_timeout_seconds: float
 
@@ -72,7 +75,10 @@ def get_settings() -> Settings:
             "HF_INFERENCE_BASE_URL",
             "https://router.huggingface.co/hf-inference/models",
         ).rstrip("/"),
-        natlas_asr_model=os.getenv("NATLAS_ASR_MODEL", "NCAIR1/NigerianAccentedEnglish"),
+        natlas_english_model=os.getenv("NATLAS_ENGLISH_MODEL", "NCAIR1/NigerianAccentedEnglish"),
+        natlas_yoruba_model=os.getenv("NATLAS_YORUBA_MODEL", "NCAIR1/Yoruba-ASR"),
+        natlas_hausa_model=os.getenv("NATLAS_HAUSA_MODEL", "NCAIR1/Hausa-ASR"),
+        natlas_igbo_model=os.getenv("NATLAS_IGBO_MODEL", "NCAIR1/Igbo-ASR"),
         fallback_asr_model=os.getenv("FALLBACK_ASR_MODEL", "openai/whisper-large-v3"),
         transcription_timeout_seconds=float(os.getenv("TRANSCRIPTION_TIMEOUT_SECONDS", "45")),
     )

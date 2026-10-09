@@ -25,16 +25,17 @@ The boundaries are intentionally lightweight. They make external integrations te
 
 1. Africa's Talking sends call metadata to `POST /voice/incoming`.
 2. The API normalizes provider field names and delegates to `VoiceIntakeService`.
-3. The service hashes the caller number with a configured secret and creates the call session.
-4. The API returns provider XML containing instructions and a session-bound recording callback.
-5. The provider sends recording metadata to `POST /voice/recording`.
-6. The session transitions to `recording_ready`; the callback is acknowledged and ingestion continues as a background task.
-7. The downloader validates the URL, redirect targets, content type, response size, and timeout before accepting audio.
-8. N-ATLAS processes the audio first. Whisper is attempted when the primary model is unavailable; otherwise the record is marked for manual transcription.
-9. Transcription provenance and processing state are persisted before classification begins.
-10. Classification, location resolution, and verification compose an incident.
-11. The incident is persisted and published to the dispatcher console.
-12. A human dispatcher records the final decision.
+3. The service hashes the caller number with a configured secret and creates the call session with English as the safe default.
+4. The API returns a keypad menu for English, Yoruba, Hausa, or Igbo.
+5. `POST /voice/language` stores the selected language and returns recording instructions. If no digit is received, the original response continues in English.
+6. The provider sends recording metadata to `POST /voice/recording`.
+7. The session transitions to `recording_ready`; the callback is acknowledged and ingestion continues as a background task.
+8. The downloader validates the URL, redirect targets, content type, response size, and timeout before accepting audio.
+9. The selected N-ATLaS language model processes the audio first. Whisper is attempted when that model is unavailable; otherwise the record is marked for manual transcription.
+10. Transcription provenance and processing state are persisted before classification begins.
+11. Classification, location resolution, and verification compose an incident.
+12. The incident is persisted and published to the dispatcher console.
+13. A human dispatcher records the final decision.
 
 ## Dependency resilience
 

@@ -24,18 +24,43 @@ async def test_incoming_call_stores_hashed_identity_and_returns_provider_xml(cli
 
     assert response.status_code == 200
     document = ET.fromstring(response.text)
+    language_menu = document.find("GetDigits")
+    assert language_menu is not None
+    assert language_menu.attrib["callbackUrl"].endswith("/voice/language?session_id=session-001")
     record = document.find("Record")
     assert record is not None
     assert record.attrib["callbackUrl"].endswith("/voice/recording?session_id=session-001")
 
     connection = sqlite3.connect(get_settings().database_path)
-    stored_hash = connection.execute(
-        "SELECT phone_hash FROM sessions WHERE id = ?", ("session-001",)
-    ).fetchone()[0]
+    stored_hash, language = connection.execute(
+        "SELECT phone_hash, language FROM sessions WHERE id = ?", ("session-001",)
+    ).fetchone()
     connection.close()
 
     assert stored_hash != "+2348000000000"
     assert len(stored_hash) == 64
+    assert language == "en"
+
+
+async def test_language_selection_is_persisted_and_returns_recording_xml(client):
+    await start_call(client)
+
+    response = await client.post(
+        "/voice/language?session_id=session-001",
+        data={"dtmfDigits": "2"},
+    )
+
+    assert response.status_code == 200
+    document = ET.fromstring(response.text)
+    assert document.find("Record") is not None
+    assert "Yoruba selected" in response.text
+
+    connection = sqlite3.connect(get_settings().database_path)
+    language = connection.execute(
+        "SELECT language FROM sessions WHERE id = ?", ("session-001",)
+    ).fetchone()[0]
+    connection.close()
+    assert language == "yo"
 
 
 async def test_recording_callback_queues_transcription(client, recording_pipeline):

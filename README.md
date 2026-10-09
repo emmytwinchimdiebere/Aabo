@@ -9,7 +9,7 @@ The system is designed around a strict human-in-the-loop boundary: automated com
 ## Capabilities
 
 - Voice intake through Africa's Talking callbacks
-- Nigerian-language transcription through N-ATLAS, with a secondary ASR path
+- Nigerian-language transcription through the N-ATLaS English, Yoruba, Hausa, and Igbo models, with a secondary ASR path
 - Classification into medical, fire, security, accident, or other
 - Spoken-location extraction and NIPOST postcode resolution
 - Location consistency and spoof-risk signals
@@ -69,7 +69,7 @@ See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for component boundaries and 
 
 N-ATLAS and NIPOST credentials are required when enabling their respective integrations.
 
-The N-ATLAS model repositories require accepting their access terms on Hugging Face before the configured token can download or invoke them.
+The N-ATLaS model repositories require accepting their access terms on Hugging Face before the configured token can invoke them. Access is required for `NCAIR1/NigerianAccentedEnglish`, `NCAIR1/Yoruba-ASR`, `NCAIR1/Hausa-ASR`, and `NCAIR1/Igbo-ASR`.
 
 ## Local setup
 
@@ -153,6 +153,7 @@ npm.cmd audit
 |---|---|---|
 | `GET` | `/health` | Service health and version |
 | `POST` | `/voice/incoming` | Register a call and return provider XML |
+| `POST` | `/voice/language` | Persist the caller's keypad language selection |
 | `POST` | `/voice/recording` | Accept recording metadata for ingestion |
 | `POST` | `/voice/end` | Close a call session |
 

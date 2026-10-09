@@ -10,6 +10,13 @@ class SessionStatus(StrEnum):
     ENDED = "ended"
 
 
+class LanguageCode(StrEnum):
+    ENGLISH = "en"
+    YORUBA = "yo"
+    HAUSA = "ha"
+    IGBO = "ig"
+
+
 class TranscriptStatus(StrEnum):
     PROCESSING = "processing"
     COMPLETE = "complete"

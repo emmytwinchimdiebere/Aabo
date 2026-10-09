@@ -1,10 +1,10 @@
 import logging
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from urllib.parse import quote
 
 import httpx
 
-from ..models import DownloadedAudio, TranscriptResult
+from ..models import DownloadedAudio, LanguageCode, TranscriptResult
 
 logger = logging.getLogger(__name__)
 
@@ -108,3 +108,49 @@ class TranscriptionChain:
                 )
 
         raise TranscriptionError(final_error)
+
+
+class MultilingualTranscriber:
+    def __init__(
+        self,
+        client: httpx.AsyncClient,
+        *,
+        token: str | None,
+        base_url: str,
+        natlas_models: Mapping[LanguageCode, str],
+        fallback_model: str,
+        timeout_seconds: float,
+    ) -> None:
+        if set(natlas_models) != set(LanguageCode):
+            raise ValueError("A N-ATLaS model must be configured for every language")
+        self.client = client
+        self.token = token
+        self.base_url = base_url
+        self.natlas_models = natlas_models
+        self.fallback_model = fallback_model
+        self.timeout_seconds = timeout_seconds
+
+    async def transcribe(self, audio: DownloadedAudio, language: LanguageCode) -> TranscriptResult:
+        chain = TranscriptionChain(
+            [
+                HuggingFaceTranscriber(
+                    self.client,
+                    token=self.token,
+                    base_url=self.base_url,
+                    model=self.natlas_models[language],
+                    provider_name="n-atlas",
+                    language=language.value,
+                    timeout_seconds=self.timeout_seconds,
+                ),
+                HuggingFaceTranscriber(
+                    self.client,
+                    token=self.token,
+                    base_url=self.base_url,
+                    model=self.fallback_model,
+                    provider_name="whisper",
+                    language=language.value,
+                    timeout_seconds=self.timeout_seconds,
+                ),
+            ]
+        )
+        return await chain.transcribe(audio)

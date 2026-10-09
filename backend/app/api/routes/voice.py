@@ -24,6 +24,19 @@ def incoming_call(
     return Response(content=xml, media_type="application/xml")
 
 
+@router.post("/language", response_class=Response)
+def language_selected(
+    service: VoiceService,
+    session_id: Annotated[str, Query(min_length=1)],
+    digit: Annotated[str, Form(alias="dtmfDigits")],
+) -> Response:
+    try:
+        xml = service.select_language(session_id=session_id, digit=digit)
+    except SessionNotFoundError as error:
+        raise HTTPException(status_code=404, detail="Call session not found") from error
+    return Response(content=xml, media_type="application/xml")
+
+
 @router.post(
     "/recording",
     response_model=RecordingAcceptedResponse,
