@@ -82,43 +82,34 @@ LANGUAGE_CLARIFICATION = (
 
 LOCATION_REQUESTS = {
     LanguageCode.ENGLISH: (
-        "I am Aabo, your emergency assistant. First, tell me where you are. "
-        "You can say a street, junction, market, school, hospital, landmark, area, "
-        "town, or postcode."
+        "Tell me exactly where you are: house number, street, area, or nearby landmark."
     ),
     LanguageCode.YORUBA: (
-        "Emi ni Aabo, oluranlowo pajawiri re. Akoko, so ibi ti o wa. "
-        "O le so oruko opopona, orita, oja, ile-iwe, ile-iwosan, ami-ona, ilu, "
-        "tabi postcode."
+        "Aabo pajawiri ni mi. So ibi ti o wa: nomba ile, opopona, agbegbe, "
+        "tabi ami-ona to sunmo."
     ),
     LanguageCode.HAUSA: (
-        "Ni Aabo, mataimakin gaggawa. Da farko, fada min inda kake. "
-        "Kana iya fadin titi, mahada, kasuwa, makaranta, asibiti, wata alama, "
-        "gari, ko postcode."
+        "Ni Aabo gaggawa. Fada min inda kake: lambar gida, titi, unguwa, "
+        "ko sanannen wuri kusa."
     ),
     LanguageCode.IGBO: (
-        "Abu m Aabo, onye enyemaka ihe mberede gi. Biko buru uzo gwa m ebe ino. "
-        "I nwere ike ikwu okporo uzo, junction, ahia, ulo akwukwo, ulo ogwu, "
-        "ebe ama ama, obodo, ma obu postcode."
+        "A bu m Aabo. Biko gwa m ebe ino: nomba ulo, okporo uzo, mpaghara, "
+        "ma obu ebe ama ama di nso."
     ),
 }
 
 DETAIL_REQUESTS = {
     LanguageCode.ENGLISH: (
-        "I heard {location}, but I need a more exact place. What street, junction, "
-        "market, school, hospital, building, or nearby landmark are you at?"
+        "I need a more exact place near {location}. What street or landmark is that?"
     ),
     LanguageCode.YORUBA: (
-        "Mo gbo {location}, sugbon mo nilo ibi to daju sii. Opopona, orita, oja, "
-        "ile-iwe, ile-iwosan, ile, tabi ami-ona wo lo wa nitosi?"
+        "Mo gbo {location}. Opopona tabi ami-ona wo lo wa nitosi?"
     ),
     LanguageCode.HAUSA: (
-        "Na ji {location}, amma ina bukatar karin bayani. Wane titi, mahada, kasuwa, "
-        "makaranta, asibiti, gini, ko sanannen wuri ne kusa da kai?"
+        "Na ji {location}. Wane titi ko sanannen wuri ne kusa?"
     ),
     LanguageCode.IGBO: (
-        "Anurum {location}, mana achoro ebe doro anya karie. Kedu okporo uzo, "
-        "junction, ahia, ulo akwukwo, ulo ogwu, ulo, ma obu ebe ama ama di nso?"
+        "Anurum {location}. Kedu okporo uzo ma obu ebe ama ama di nso?"
     ),
 }
 

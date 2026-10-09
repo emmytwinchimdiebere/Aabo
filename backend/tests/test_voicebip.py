@@ -401,7 +401,7 @@ async def test_repeated_no_restarts_location_collection(client):
     response = await post_signed(client, {**base, "transcription": "No. No."})
 
     assert response.status_code == 200
-    assert "tell me where you are" in response.json()["text"]
+    assert "tell me exactly where you are" in response.json()["text"].lower()
     assert "I heard" not in response.json()["text"]
 
 
