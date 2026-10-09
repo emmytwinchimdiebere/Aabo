@@ -1,0 +1,35 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Runtime data
+backend/data/*.db
+backend/data/*.db-*
+backend/data/recordings/
+
+# Internal delivery notes (not part of the public repository)
+Aabo_112_SDD_v2.0.md
+
+# JavaScript
+node_modules/
+frontend/dist/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local tooling
+.ngrok2/
+*.log
