@@ -69,6 +69,8 @@ See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for component boundaries and 
 
 N-ATLAS and NIPOST credentials are required when enabling their respective integrations.
 
+The N-ATLAS model repositories require accepting their access terms on Hugging Face before the configured token can download or invoke them.
+
 ## Local setup
 
 ### Configuration
@@ -78,6 +80,8 @@ Copy-Item .env.example .env
 ```
 
 Set a unique `PHONE_HASH_SALT`. Do not commit `.env`.
+
+For voice ingestion, set `AT_RECORDING_ALLOWED_HOSTS` to the comma-separated hostnames observed in trusted Africa's Talking recording callbacks. Production startup rejects an empty allowlist.
 
 ### Backend
 
@@ -171,4 +175,3 @@ See [SECURITY.md](./SECURITY.md) for reporting and data-handling guidance.
 ## Contributing
 
 Read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a pull request.
-

@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 
+import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -11,11 +12,13 @@ from .database import get_database
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI):
+async def lifespan(application: FastAPI):
     settings = get_settings()
     settings.validate()
     get_database().migrate()
-    yield
+    async with httpx.AsyncClient(follow_redirects=False) as http_client:
+        application.state.http_client = http_client
+        yield
 
 
 def create_app() -> FastAPI:

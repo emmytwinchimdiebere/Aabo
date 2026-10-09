@@ -28,10 +28,13 @@ The boundaries are intentionally lightweight. They make external integrations te
 3. The service hashes the caller number with a configured secret and creates the call session.
 4. The API returns provider XML containing instructions and a session-bound recording callback.
 5. The provider sends recording metadata to `POST /voice/recording`.
-6. The session transitions to `recording_ready` and the ingestion pipeline receives the signed audio URL.
-7. Transcription, classification, location resolution, and verification compose an incident.
-8. The incident is persisted and published to the dispatcher console.
-9. A human dispatcher records the final decision.
+6. The session transitions to `recording_ready`; the callback is acknowledged and ingestion continues as a background task.
+7. The downloader validates the URL, redirect targets, content type, response size, and timeout before accepting audio.
+8. N-ATLAS processes the audio first. Whisper is attempted when the primary model is unavailable; otherwise the record is marked for manual transcription.
+9. Transcription provenance and processing state are persisted before classification begins.
+10. Classification, location resolution, and verification compose an incident.
+11. The incident is persisted and published to the dispatcher console.
+12. A human dispatcher records the final decision.
 
 ## Dependency resilience
 
@@ -48,7 +51,7 @@ Failures must be visible in the incident record. A degraded result can still be 
 ## Data handling
 
 - Phone numbers are transformed with HMAC-SHA-256 before persistence.
-- Signed provider URLs are held only for the duration of ingestion.
+- Signed provider URLs are validated and held only for the duration of ingestion.
 - Audio and database files are excluded from version control.
 - Every incident reaches human review regardless of automated confidence.
 - Production configuration rejects an insecure base URL or default hashing secret.
@@ -59,4 +62,3 @@ Failures must be visible in the incident record. A degraded result can still be 
 2. Resolve spoken and device locations to a shared coordinate/postcode representation before comparison.
 3. Confirm whether the voice provider supports streaming audio; otherwise expose processing stages rather than word-level streaming.
 4. Define retention periods for audio, transcripts, caller hashes, and incident records before operational deployment.
-

@@ -7,10 +7,10 @@ The immediate objective is a complete call-to-dispatcher path. Items are ordered
 - [x] Establish the application structure, configuration, migrations, and tests.
 - [x] Accept incoming-call, recording-ready, and call-ended callbacks.
 - [x] Hash caller identifiers before persistence.
-- [ ] Download provider audio with time, size, and content-type limits.
-- [ ] Integrate N-ATLAS transcription.
-- [ ] Add Whisper and manual-transcript fallbacks.
-- [ ] Persist transcript provenance and confidence.
+- [x] Download provider audio with time, size, and content-type limits.
+- [x] Integrate N-ATLAS transcription through Hugging Face Inference.
+- [x] Add Whisper fallback and an explicit manual-transcription state.
+- [x] Persist transcript provenance and confidence.
 
 Exit condition: a phone call produces a stored transcript with its processing source visible.
 
@@ -52,4 +52,3 @@ Exit condition: a dispatcher can receive, inspect, and decide an incident from t
 - SMS and USSD intake
 - Multi-node deployment
 - Native mobile applications
-

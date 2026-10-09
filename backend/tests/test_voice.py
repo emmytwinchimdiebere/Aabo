@@ -38,7 +38,7 @@ async def test_incoming_call_stores_hashed_identity_and_returns_provider_xml(cli
     assert len(stored_hash) == 64
 
 
-async def test_recording_callback_updates_session_state(client):
+async def test_recording_callback_queues_transcription(client, recording_pipeline):
     await start_call(client)
 
     response = await client.post(
@@ -49,8 +49,12 @@ async def test_recording_callback_updates_session_state(client):
         },
     )
 
-    assert response.status_code == 202
+    assert response.status_code == 200
     assert response.json()["duration_seconds"] == 12
+    assert recording_pipeline.prepared == ["session-001"]
+    assert recording_pipeline.processed == [
+        ("session-001", "https://voice-provider.invalid/recording.wav")
+    ]
 
 
 async def test_unknown_recording_session_returns_not_found(client):
