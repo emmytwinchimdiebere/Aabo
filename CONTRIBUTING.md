@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for contributing to Aabo 112. Changes should be small, reviewable, and tied to an observable caller or dispatcher outcome.
+Thank you for contributing to Aabo. Changes should be small, reviewable, and tied to an observable caller or dispatcher outcome.
 
 ## Development workflow
 
@@ -34,4 +34,3 @@ docs: document postcode cache refresh procedure
 ## Pull requests
 
 Explain the behavior changed, the reason for the change, and how it was verified. Include sanitized screenshots or logs when they help reviewers. Call out schema, environment-variable, provider-contract, or operator-workflow changes explicitly.
-

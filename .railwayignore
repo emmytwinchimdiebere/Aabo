@@ -1,0 +1,15 @@
+.git
+.env
+.natlas-kit
+.railway-upload-*
+backend/.venv
+backend/.pytest_cache
+backend/.ruff_cache
+backend/**/__pycache__
+backend/data
+frontend/node_modules
+frontend/dist
+*.db
+*.log
+*.jpg
+Aabo_112_SDD_v2.0.md

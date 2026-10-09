@@ -37,17 +37,27 @@ class AudioDownloader:
         self.timeout_seconds = timeout_seconds
         self.max_redirects = max_redirects
 
-    async def download(self, url: str) -> DownloadedAudio:
+    async def download(
+        self,
+        url: str,
+        *,
+        request_headers: dict[str, str] | None = None,
+    ) -> DownloadedAudio:
         current_url = url
+        credential_host = (urlsplit(url).hostname or "").lower()
 
         for redirect_count in range(self.max_redirects + 1):
             self._validate_url(current_url)
             try:
+                current_host = (urlsplit(current_url).hostname or "").lower()
+                headers = {"Accept": "audio/*, application/octet-stream"}
+                if request_headers and current_host == credential_host:
+                    headers.update(request_headers)
                 async with self.client.stream(
                     "GET",
                     current_url,
                     timeout=self.timeout_seconds,
-                    headers={"Accept": "audio/*, application/octet-stream"},
+                    headers=headers,
                 ) as response:
                     if response.is_redirect:
                         if redirect_count == self.max_redirects:

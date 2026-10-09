@@ -22,8 +22,22 @@ class Settings:
     recording_allowed_hosts: tuple[str, ...]
     recording_max_bytes: int
     recording_timeout_seconds: float
+    recording_storage_path: Path
+    voicebip_api_key: str | None
+    voicebip_signing_secret: str | None
+    voicebip_previous_signing_secret: str | None
+    voicebip_api_base_url: str
+    voicebip_webhook_max_age_seconds: int
+    voicebip_request_timeout_seconds: float
+    voicebip_english_agent_id: str | None
+    voicebip_yoruba_agent_id: str | None
+    voicebip_hausa_agent_id: str | None
+    voicebip_igbo_agent_id: str | None
+    sms_acknowledgement_text: str
     hf_token: str | None
     hf_inference_base_url: str
+    natlas_base_url: str | None
+    natlas_api_key: str | None
     natlas_english_model: str
     natlas_yoruba_model: str
     natlas_hausa_model: str
@@ -42,12 +56,20 @@ class Settings:
             raise RuntimeError("RECORDING_TIMEOUT_SECONDS must be greater than zero")
         if self.transcription_timeout_seconds <= 0:
             raise RuntimeError("TRANSCRIPTION_TIMEOUT_SECONDS must be greater than zero")
+        if bool(self.natlas_base_url) != bool(self.natlas_api_key):
+            raise RuntimeError("NATLAS_BASE_URL and NATLAS_API_KEY must be configured together")
+        if self.voicebip_webhook_max_age_seconds <= 0:
+            raise RuntimeError("VOICEBIP_WEBHOOK_MAX_AGE_SECONDS must be greater than zero")
+        if self.voicebip_request_timeout_seconds <= 0:
+            raise RuntimeError("VOICEBIP_REQUEST_TIMEOUT_SECONDS must be greater than zero")
         if self.is_production and self.phone_hash_salt == DEFAULT_PHONE_HASH_SALT:
             raise RuntimeError("PHONE_HASH_SALT must be configured in production")
         if self.is_production and not self.base_url.startswith("https://"):
             raise RuntimeError("BASE_URL must use HTTPS in production")
         if self.is_production and not self.recording_allowed_hosts:
-            raise RuntimeError("AT_RECORDING_ALLOWED_HOSTS must be configured in production")
+            raise RuntimeError("RECORDING_ALLOWED_HOSTS must be configured in production")
+        if self.is_production and self.voicebip_api_key and not self.voicebip_signing_secret:
+            raise RuntimeError("VOICEBIP_SIGNING_SECRET must be configured in production")
 
 
 def _database_path(value: str) -> Path:
@@ -61,20 +83,51 @@ def _csv_values(value: str) -> tuple[str, ...]:
 
 @lru_cache
 def get_settings() -> Settings:
+    recording_hosts = os.getenv("RECORDING_ALLOWED_HOSTS")
+    if recording_hosts is None:
+        recording_hosts = os.getenv("AT_RECORDING_ALLOWED_HOSTS", "")
     return Settings(
         environment=os.getenv("APP_ENV", "development"),
         base_url=os.getenv("BASE_URL", "http://localhost:8000").rstrip("/"),
-        database_path=_database_path(os.getenv("DATABASE_PATH", "./data/aabo112.db")),
+        database_path=_database_path(os.getenv("DATABASE_PATH", "./data/aabo.db")),
         phone_hash_salt=os.getenv("PHONE_HASH_SALT", DEFAULT_PHONE_HASH_SALT),
         cors_origins=_csv_values(os.getenv("CORS_ORIGINS", "http://localhost:5173")),
-        recording_allowed_hosts=_csv_values(os.getenv("AT_RECORDING_ALLOWED_HOSTS", "")),
+        recording_allowed_hosts=_csv_values(recording_hosts),
         recording_max_bytes=int(os.getenv("RECORDING_MAX_BYTES", "10485760")),
         recording_timeout_seconds=float(os.getenv("RECORDING_TIMEOUT_SECONDS", "15")),
+        recording_storage_path=_database_path(
+            os.getenv("RECORDING_STORAGE_PATH", "./data/recordings")
+        ),
+        voicebip_api_key=os.getenv("VOICEBIP_API_KEY") or None,
+        voicebip_signing_secret=os.getenv("VOICEBIP_SIGNING_SECRET") or None,
+        voicebip_previous_signing_secret=(
+            os.getenv("VOICEBIP_PREVIOUS_SIGNING_SECRET") or None
+        ),
+        voicebip_api_base_url=os.getenv(
+            "VOICEBIP_API_BASE_URL", "https://api.voicebip.com/v1"
+        ).rstrip("/"),
+        voicebip_webhook_max_age_seconds=int(
+            os.getenv("VOICEBIP_WEBHOOK_MAX_AGE_SECONDS", "300")
+        ),
+        voicebip_request_timeout_seconds=float(
+            os.getenv("VOICEBIP_REQUEST_TIMEOUT_SECONDS", "10")
+        ),
+        voicebip_english_agent_id=os.getenv("VOICEBIP_ENGLISH_AGENT_ID") or None,
+        voicebip_yoruba_agent_id=os.getenv("VOICEBIP_YORUBA_AGENT_ID") or None,
+        voicebip_hausa_agent_id=os.getenv("VOICEBIP_HAUSA_AGENT_ID") or None,
+        voicebip_igbo_agent_id=os.getenv("VOICEBIP_IGBO_AGENT_ID") or None,
+        sms_acknowledgement_text=os.getenv(
+            "SMS_ACKNOWLEDGEMENT_TEXT",
+            "Aabo: Report received. A dispatcher will review it. "
+            "If danger is immediate, contact local emergency services.",
+        ),
         hf_token=os.getenv("HF_TOKEN") or None,
         hf_inference_base_url=os.getenv(
             "HF_INFERENCE_BASE_URL",
             "https://router.huggingface.co/hf-inference/models",
         ).rstrip("/"),
+        natlas_base_url=(os.getenv("NATLAS_BASE_URL") or "").rstrip("/") or None,
+        natlas_api_key=os.getenv("NATLAS_API_KEY") or None,
         natlas_english_model=os.getenv("NATLAS_ENGLISH_MODEL", "NCAIR1/NigerianAccentedEnglish"),
         natlas_yoruba_model=os.getenv("NATLAS_YORUBA_MODEL", "NCAIR1/Yoruba-ASR"),
         natlas_hausa_model=os.getenv("NATLAS_HAUSA_MODEL", "NCAIR1/Hausa-ASR"),

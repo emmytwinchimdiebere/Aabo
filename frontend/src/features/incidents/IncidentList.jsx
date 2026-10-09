@@ -8,7 +8,7 @@ export function IncidentList({ incidents }) {
 
       {incidents.length === 0 ? (
         <div className="emptyState">
-          <span className="emptyIcon" aria-hidden="true">112</span>
+          <span className="emptyIcon" aria-hidden="true">A</span>
           <h3>No active incidents</h3>
           <p>Incoming reports will appear here for dispatcher review.</p>
         </div>
@@ -22,4 +22,3 @@ export function IncidentList({ incidents }) {
     </aside>
   );
 }
-

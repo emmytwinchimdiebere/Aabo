@@ -1,0 +1,42 @@
+name: Roadmap feature
+description: Propose a planned Aabo access channel or operational integration
+title: "[Feature] "
+labels:
+  - roadmap
+  - phase-2
+body:
+  - type: textarea
+    id: user_outcome
+    attributes:
+      label: User outcome
+      description: Describe who gains access and what they can complete.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: State the first end-to-end slice and what remains out of scope.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: External dependencies
+      description: List carrier, government, provider, or emergency-centre access required.
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety and failure behavior
+      description: Explain how a failed or incomplete report remains visible and recoverable.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List the objective checks required before this feature can be described as live.
+    validations:
+      required: true

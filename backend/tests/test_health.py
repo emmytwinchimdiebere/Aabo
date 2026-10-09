@@ -9,7 +9,7 @@ async def test_health_reports_service_metadata(client):
     assert response.status_code == 200
     assert response.json() == {
         "status": "ok",
-        "service": "aabo-112-api",
+        "service": "aabo-api",
         "version": "0.1.0",
         "environment": "development",
     }

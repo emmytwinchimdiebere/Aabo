@@ -1,89 +1,106 @@
-# Aabo 112
+# Aabo
 
-Aabo 112 is a voice-first emergency intake and incident coordination system for Nigeria. It converts a caller's report into a structured incident record containing a transcript, emergency category, location, verification signals, and dispatcher status.
+**Speak in your language. Confirm what was heard. Reach a human dispatcher.**
 
-The system is designed around a strict human-in-the-loop boundary: automated components collect and organize information, while a dispatcher reviews every incident before action is taken.
+[Open Aabo](https://aabo-production.up.railway.app) · [Dispatcher console](https://aabo-production.up.railway.app/dispatch) · **Call +234 201 350 2017**
 
-> **Project status:** active development. Aabo 112 is not currently connected to Nigeria's public emergency infrastructure and must not be used as a replacement for an official emergency number.
+Aabo is a voice-first emergency intake system built for Nigeria. A caller can describe an emergency in Nigerian English, Yoruba, Hausa, or Igbo; Aabo collects and confirms the location and emergency details, then creates a structured incident for human review.
 
-## Capabilities
+Aabo supports emergency intake and coordination. It is not connected to Nigeria's public emergency infrastructure and must not be treated as a replacement for an official emergency service.
 
-- Voice intake through Africa's Talking callbacks
-- Nigerian-language transcription through the N-ATLaS English, Yoruba, Hausa, and Igbo models, with a secondary ASR path
-- Classification into medical, fire, security, accident, or other
-- Spoken-location extraction and NIPOST postcode resolution
-- Location consistency and spoof-risk signals
-- Live incident delivery to a dispatcher console
-- Explicit dispatcher confirmation or rejection
+## Why Aabo
 
-## Architecture
+A Nigerian health-system profile reports that only 3% of people call an ambulance during an emergency, while 78% call family or friends or arrange transport themselves. Aabo addresses one part of that trust and access gap: being understood quickly, in a familiar language, with enough verified context for a dispatcher to act.
+
+Source: [Nigeria Health Systems and Services Profile, African Health Observatory Platform](https://ahop.aho.afro.who.int/download/service-delivery-nigeria-health-systems-and-services-profile/)
+
+## What works today
+
+| Capability | Status | Notes |
+|---|---|---|
+| Inbound voice | Live | Call **+234 201 350 2017**; VoiceBIP carries the call and Aabo owns the conversation state. |
+| Caller web report | Live | Record a short report, review the transcript and address, and submit it for dispatch review. |
+| Dispatcher console | Live | Review incidents, compare raw and caller-corrected text, and replay the original recording. |
+| N-ATLAS transcription | Live | Self-hosted language-specific ASR for Nigerian English, Yoruba, Hausa, and Igbo recordings. |
+| SMS intake | Integration ready | Signed webhook ingestion and acknowledgement are implemented; the public number still requires an SMS-enabled carrier channel. |
+| NIPOST resolution | Access pending | The integration boundary is defined; postcode resolution remains disabled until the required production API scope is available. |
+
+## The caller journey
+
+1. The caller selects or speaks Nigerian English, Yoruba, Hausa, or Igbo.
+2. Aabo asks for the easiest useful location: a street, junction, landmark, market, school, hospital, town, or postcode.
+3. Aabo repeats the location and asks the caller to confirm or correct it.
+4. The caller briefly describes the emergency.
+5. Aabo repeats the emergency description. An incident is created only after the caller says yes.
+6. Aabo confirms that the report is with a dispatcher, offers a short calming safety instruction, and ends the call.
+
+The explicit confirmation steps are intentional. Speech recognition can mishear names and Nigerian addresses, so model output is never silently presented as caller-confirmed fact.
+
+## How it works
 
 ```mermaid
 flowchart LR
-    Caller[Caller] --> Provider[Africa's Talking]
-    Provider -->|HTTPS callbacks| API[FastAPI application]
-    API --> ASR[Transcription service]
-    API --> Location[Location service]
-    ASR --> Incident[Incident composer]
-    Location --> Incident
-    Incident --> DB[(SQLite)]
-    DB -->|WebSocket| Console[Dispatcher console]
-    Console --> Dispatcher[Human dispatcher]
+    Caller[Caller] -->|Call +234 201 350 2017| VoiceBIP[VoiceBIP telephony]
+    Caller -->|Browser recording| Web[Caller web app]
+    VoiceBIP -->|Signed BYOM turns and events| API[Aabo FastAPI service]
+    Web -->|Audio and corrections| API
+    API --> Agent[Conversation state machine]
+    API --> ASR[N-ATLAS language models]
+    Agent --> Confirm[Location and emergency confirmation]
+    ASR --> Confirm
+    Confirm --> Tool[Create incident tool]
+    Tool --> Store[(Incident and recording store)]
+    Store --> Console[Dispatcher console]
+    Console --> Human[Human dispatcher]
 ```
 
-Aabo 112 is a modular monolith. The API, processing pipeline, persistence layer, and realtime gateway run as one deployable service. External providers are isolated behind service interfaces so they can be replaced without changing the HTTP or domain layers.
+VoiceBIP currently performs live speech recognition and synthesis on phone calls, then sends normalized text turns to Aabo's signed BYOM webhook. When audio is available, N-ATLAS processes the stored recording for the incident record. The browser flow sends audio directly to the same N-ATLAS gateway and preserves both the original output and the caller's correction.
 
-See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for component boundaries and data flow.
+This boundary is important: Aabo owns the personality, questions, confirmations, tool calls, incident data, and dispatcher experience. The telephony provider can be replaced without rewriting the core workflow.
 
-## Repository layout
+## Design principles
+
+- **Human in the loop:** automation gathers and organizes; a dispatcher makes the operational decision.
+- **Confirm before submission:** both location and emergency details must be confirmed before the incident tool runs.
+- **Evidence over confidence:** the original audio, raw transcript, corrected transcript, language, and provenance remain visible.
+- **Graceful degradation:** an imperfect report is flagged for review instead of being silently discarded.
+- **Privacy by default:** phone numbers are keyed hashes, credentials stay server-side, and signed recording URLs are not persisted.
+
+## Repository structure
 
 ```text
-.
-├── backend/
-│   ├── app/
-│   │   ├── api/             HTTP routes and dependencies
-│   │   ├── core/            Configuration and logging
-│   │   ├── repositories/    SQLite persistence
-│   │   ├── services/        Application workflows
-│   │   ├── database.py      Connection and migration management
-│   │   └── models.py        API and domain models
-│   ├── migrations/          Ordered SQL migrations
-│   └── tests/               Focused API and persistence tests
-├── frontend/
-│   └── src/
-│       ├── api/             Backend client
-│       ├── components/      Shared interface components
-│       ├── features/        Incident and map features
-│       └── hooks/           Reusable React behavior
-├── docs/                    Architecture, operations, and roadmap
-└── .github/                 Contribution templates
+backend/
+  app/api/             HTTP routes and provider adapters
+  app/core/            configuration, security, and logging
+  app/repositories/    SQLite persistence boundaries
+  app/services/        conversation, audio, transcription, and incident workflows
+  migrations/          ordered database migrations
+  tests/               API, state-machine, security, and integration tests
+frontend/
+  src/features/caller/       caller voice-report experience
+  src/features/dispatch/     dispatcher incident console
+  src/features/transcription/ N-ATLAS language lab
+docs/                   architecture, agent, operations, and model documentation
+.github/                CI and contribution templates
 ```
 
-## Requirements
+## Run locally
+
+### Requirements
 
 - Python 3.11
 - Node.js 20.19+ or 22.12+
 - Git
-- An HTTPS tunnel for local callback development
-- Africa's Talking credentials for voice calls
 
-N-ATLAS and NIPOST credentials are required when enabling their respective integrations.
-
-The N-ATLaS model repositories require accepting their access terms on Hugging Face before the configured token can invoke them. Access is required for `NCAIR1/NigerianAccentedEnglish`, `NCAIR1/Yoruba-ASR`, `NCAIR1/Hausa-ASR`, and `NCAIR1/Igbo-ASR`.
-
-## Local setup
-
-### Configuration
+### 1. Configure the application
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Set a unique `PHONE_HASH_SALT`. Do not commit `.env`.
+At minimum, replace `PHONE_HASH_SALT`. Add provider credentials only for the integrations you are exercising. Never commit `.env`.
 
-For voice ingestion, set `AT_RECORDING_ALLOWED_HOSTS` to the comma-separated hostnames observed in trusted Africa's Talking recording callbacks. Production startup rejects an empty allowlist.
-
-### Backend
+### 2. Start the API
 
 ```powershell
 Set-Location backend
@@ -93,17 +110,9 @@ python -m pip install -r requirements-dev.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-Verify the service:
+The health endpoint is `http://localhost:8000/health`; interactive API documentation is available at `http://localhost:8000/docs`.
 
-```powershell
-Invoke-RestMethod http://localhost:8000/health
-```
-
-OpenAPI documentation is available at `http://localhost:8000/docs`.
-
-### Dispatcher console
-
-In a second terminal:
+### 3. Start the web application
 
 ```powershell
 Set-Location frontend
@@ -111,68 +120,40 @@ npm.cmd install
 npm.cmd run dev
 ```
 
-Open `http://localhost:5173`.
+Open `http://localhost:5173/` for the caller experience and `http://localhost:5173/dispatch` for the dispatcher console.
 
-## Voice provider configuration
-
-Expose the API over HTTPS:
-
-```powershell
-ngrok http 8000
-```
-
-Set `BASE_URL` in `.env` to the generated HTTPS origin and configure the Africa's Talking incoming-call callback as:
-
-```text
-POST https://your-domain.example/voice/incoming
-```
-
-The response contains the session-specific recording callback URL. Provider recording URLs are never written to logs or persistent storage.
-
-## Quality checks
-
-Run the backend checks:
+## Verify a change
 
 ```powershell
 Set-Location backend
 .\.venv\Scripts\python.exe -m ruff check app tests
 .\.venv\Scripts\python.exe -m pytest
-```
 
-Build and audit the console:
-
-```powershell
-Set-Location frontend
+Set-Location ..\frontend
 npm.cmd run build
 npm.cmd audit
 ```
 
-## API surface
+The call-state tests assert that no incident is created before location and emergency confirmation. See [`backend/tests/test_voicebip.py`](./backend/tests/test_voicebip.py).
 
-| Method | Path | Purpose |
-|---|---|---|
-| `GET` | `/health` | Service health and version |
-| `POST` | `/voice/incoming` | Register a call and return provider XML |
-| `POST` | `/voice/language` | Persist the caller's keypad language selection |
-| `POST` | `/voice/recording` | Accept recording metadata for ingestion |
-| `POST` | `/voice/end` | Close a call session |
+## Documentation
 
-The API uses Africa's Talking field names at the provider boundary and normalized Python names internally.
-
-## Delivery priorities
-
-Current engineering priorities are maintained in [docs/ROADMAP.md](./docs/ROADMAP.md). Work proceeds vertically: each capability includes persistence, operator visibility, failure handling, and documentation before the next capability begins.
-
-## Security
-
-- Caller numbers are stored only as keyed SHA-256 hashes.
-- Signed recording URLs are excluded from logs and storage.
-- Secrets and runtime data are ignored by Git.
-- Low-confidence incidents are flagged for review, never silently discarded.
-- Production mode requires HTTPS and a non-default phone hash salt.
-
-See [SECURITY.md](./SECURITY.md) for reporting and data-handling guidance.
+- [Architecture](./docs/ARCHITECTURE.md) — system boundaries and end-to-end data flow
+- [Agent design](./docs/AGENT.md) — personality, multilingual prompts, confirmation, and tool policy
+- [Operations](./docs/OPERATIONS.md) — deployment readiness and failure handling
+- [N-ATLAS on Modal](./docs/MODAL.md) — model hosting and cold-start procedure
+- [Model improvement](./docs/MODEL_IMPROVEMENT.md) — consented correction and review workflow
+- [Roadmap](./docs/ROADMAP.md) — activation gates and planned channels
+- [Roadmap issue backlog](./docs/ISSUE_BACKLOG.md) — ready-to-create phase-two issue definitions
 
 ## Contributing
 
-Read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a pull request.
+Please read [CONTRIBUTING.md](./CONTRIBUTING.md). Pull requests must include tests for changed behavior and must not contain credentials or real caller data.
+
+## License
+
+Licensed under the [Apache License 2.0](./LICENSE).
+
+---
+
+Every Nigerian deserves to be heard—in their own language, on the device in their hand, with a location that first responders can actually find. Aabo is a promise that when you call for help, someone will understand you, and someone will come.

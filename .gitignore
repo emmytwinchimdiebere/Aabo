@@ -32,4 +32,7 @@ Thumbs.db
 
 # Local tooling
 .ngrok2/
+.railway-upload*/
+.natlas-kit/
 *.log
+*.jpg

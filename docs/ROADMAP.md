@@ -1,55 +1,52 @@
-# Engineering Roadmap
+# Aabo roadmap
 
-The immediate objective is a complete call-to-dispatcher path. Items are ordered by dependency and operational value.
+## Vision
 
-## P0 — Voice ingestion
+Every Nigerian, in any language and on any phone, should be able to reach emergency support quickly and be understood accurately.
 
-- [x] Establish the application structure, configuration, migrations, and tests.
-- [x] Accept incoming-call, recording-ready, and call-ended callbacks.
-- [x] Hash caller identifiers before persistence.
-- [x] Download provider audio with time, size, and content-type limits.
-- [x] Integrate N-ATLAS transcription through Hugging Face Inference.
-- [x] Route English, Yoruba, Hausa, and Igbo calls to their language-specific models.
-- [x] Add Whisper fallback and an explicit manual-transcription state.
-- [x] Persist transcript provenance and confidence.
+The roadmap separates working product capabilities from integrations that still depend on carrier, government, or emergency-centre access. An unchecked item is not advertised as live.
 
-Exit condition: a phone call produces a stored transcript with its processing source visible.
+## Phase 1 — Working foundation
 
-## P0 — Incident composition
+- [x] Inbound voice through **+234 201 350 2017**
+- [x] Stateful Aabo conversation behind a signed VoiceBIP BYOM webhook
+- [x] Nigerian English, Yoruba, Hausa, and Igbo language selection
+- [x] Spoken-location capture and explicit caller confirmation
+- [x] Emergency-description read-back and confirmation before submission
+- [x] Allowlisted, idempotent incident-creation tool
+- [x] N-ATLAS recording transcription for four supported languages
+- [x] Browser voice reporting with transcript and address correction
+- [x] Dispatcher incident queue with original-audio playback
+- [x] Automated backend tests and frontend production build in CI
 
-- [ ] Classify reports into medical, fire, security, accident, or other.
-- [ ] Extract streets and landmarks from the transcript.
-- [ ] Resolve device coordinates through NIPOST.
-- [ ] Add verified postcode cache data and nearest-neighbour lookup.
-- [ ] Normalize spoken and device locations before comparison.
-- [ ] Calculate spoof-risk and presence scores.
-- [ ] Persist a complete incident record.
+## Activation gates
 
-Exit condition: every processed call creates an incident that is understandable without reading raw logs.
+These integrations exist in code or behind a service boundary but are not described as live until the external dependency is ready.
 
-## P0 — Dispatcher workflow
+- [ ] Enable SMS on the public carrier number and validate inbound and delivery-receipt events
+- [ ] Obtain NIPOST address-resolution scopes and validate canonical postcode responses
+- [ ] Complete provider-side speech profiles for every supported live-call language
+- [ ] Add dispatcher authentication, authorization, and a formal retention policy
+- [ ] Exercise recovery paths in a controlled end-to-end operational test
 
-- [ ] Publish incident events over WebSocket.
-- [ ] List and select active incidents.
-- [ ] Display transcript, language, category, postcode, confidence, and risk.
-- [ ] Display incidents on an OpenStreetMap/Leaflet map.
-- [ ] Record confirm and reject decisions.
-- [ ] Add HTTP refresh when realtime delivery is unavailable.
+## Phase 2 — Access and pilot readiness
 
-Exit condition: a dispatcher can receive, inspect, and decide an incident from the console.
+- [ ] USSD fallback for low-connectivity and non-smartphone users
+- [ ] WhatsApp intake for typed reports, images, and location pins
+- [ ] Accessible web chat for deaf and hard-of-hearing callers
+- [ ] Verified local postcode cache for degraded NIPOST operation
+- [ ] Realtime console updates with an HTTP polling fallback
+- [ ] Dispatcher acknowledgement, assignment, and resolution audit trail
+- [ ] Multi-state pilot with participating emergency coordination centres
 
-## P1 — Operational readiness
+## Phase 3 — Emergency-network integration
 
-- [ ] Exercise each secondary dependency path.
-- [ ] Add structured correlation IDs across call processing.
-- [ ] Document data retention and deletion procedures.
-- [ ] Add application metrics and error reporting.
-- [ ] Define authentication and authorization before public deployment.
+- [ ] Direct CAD and responder-system adapters
+- [ ] Integration with an official national emergency number, subject to government and carrier approval
+- [ ] Multi-region deployment with encrypted managed storage
+- [ ] Operational analytics for response coverage and capacity planning
+- [ ] Native responder application where existing CAD clients are unavailable
 
-## Deferred
+## Engineering rule
 
-- Direct national shortcode integration
-- CAD and responder-system integration
-- SMS and USSD intake
-- Multi-node deployment
-- Native mobile applications
+A capability moves to “working foundation” only when it includes persistence, operator visibility, failure handling, tests, and documentation. External access or a partial adapter alone does not make a channel live.

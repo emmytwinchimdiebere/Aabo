@@ -78,7 +78,7 @@ async def test_recording_callback_queues_transcription(client, recording_pipelin
     assert response.json()["duration_seconds"] == 12
     assert recording_pipeline.prepared == ["session-001"]
     assert recording_pipeline.processed == [
-        ("session-001", "https://voice-provider.invalid/recording.wav")
+        ("session-001", "https://voice-provider.invalid/recording.wav", None)
     ]
 
 

@@ -1,9 +1,8 @@
-import hashlib
-import hmac
 import xml.etree.ElementTree as ET
 from urllib.parse import urlencode
 
 from ..core.config import Settings
+from ..core.security import hash_identifier
 from ..models import LanguageCode
 from ..repositories.sessions import SessionRepository
 
@@ -38,11 +37,7 @@ class VoiceIntakeService:
         self.sessions.mark_ended(session_id)
 
     def _hash_phone_number(self, phone_number: str) -> str:
-        return hmac.new(
-            self.settings.phone_hash_salt.encode("utf-8"),
-            phone_number.encode("utf-8"),
-            hashlib.sha256,
-        ).hexdigest()
+        return hash_identifier(phone_number, self.settings.phone_hash_salt)
 
     def _language_prompt_response(self, session_id: str) -> str:
         query = urlencode({"session_id": session_id})
@@ -59,7 +54,7 @@ class VoiceIntakeService:
         )
         prompt = ET.SubElement(collect, "Say")
         prompt.text = (
-            "Welcome to Aabo 112. For English press 1. For Yoruba press 2. "
+            "Welcome to Aabo. For English press 1. For Yoruba press 2. "
             "For Hausa press 3. For Igbo press 4."
         )
         fallback = ET.SubElement(response, "Say")
